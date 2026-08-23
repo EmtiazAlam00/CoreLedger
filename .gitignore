@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Environment variables
+.env
+
+# Dev-only certs (regenerate with scripts/generate_certs.sh)
+nginx/certs/
+
+# Dev-only private keys (regenerate with scripts/register_test_client.py)
+dev_keys/
