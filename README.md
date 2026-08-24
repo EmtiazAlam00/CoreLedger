@@ -84,6 +84,20 @@ sequenceDiagram
 
 All four have been verified live and adversarially — not just unit-tested — including a real tampered-payload rejection and a real replayed-request rejection through the actual running nginx + API stack.
 
+## Security highlights
+
+Four independent, stacked controls protect `POST /payments` — each catching a genuinely different attack class, not one big auth check:
+
+| Security property | Mechanism | Standard / concept |
+|---|---|---|
+| **Authentication** — proving who's calling | mTLS: client presents a cert verified by nginx against a private CA | TLS client certificate authentication |
+| **Integrity** — the payload wasn't modified in transit | Detached JWS signature over the exact request body | Message-level signing, independent of transport (RFC 7515) |
+| **Authorization / consent** — the account owner actually approved this | OAuth 2.0 Authorization Code + PKCE | RFC 6749 + RFC 7636 — the same flow real Open Banking APIs use |
+| **Anti-replay** — a captured, valid request can't be resubmitted | Every signed request's `jti` tracked in `used_jtis`; `iat` freshness window bounds how long that table needs to remember anything | Nonce / replay-cache pattern |
+| **Secrets hygiene** | `.env` gitignored; `.env.example` kept placeholder-only; full commit history audited before every push | Basic, frequently-skipped practice |
+
+Each control was verified adversarially, not just implemented — the test suite and live demos include a request with a modified amount rejected on signature mismatch, a captured request resubmitted verbatim rejected as a replay, and a request sent directly to the API (bypassing nginx, and therefore mTLS) rejected for missing verification. Along the way, real credentials briefly landed in the wrong file (`.env.example`, the public template, instead of the gitignored `.env`) — caught by auditing the *entire* git history before ever pushing, not just the working diff, confirming nothing had been committed before it was fixed.
+
 ## Tech stack
 
 Python 3.13 · FastAPI · PostgreSQL + SQLAlchemy + Alembic · Apache Kafka (KRaft mode) · Docker Compose · nginx · Authlib · `joserfc` · `confluent-kafka` · Plaid API · pytest · `uv`
