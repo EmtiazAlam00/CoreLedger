@@ -17,3 +17,6 @@ nginx/certs/
 
 # Dev-only private keys (regenerate with scripts/register_test_client.py)
 dev_keys/
+
+# Personal local runbook — not for the public repo
+RUNBOOK.md
